@@ -728,7 +728,15 @@
 
   function clearChart() {
     chartSpeedBuf = [];
-    chartData.push([Date.now() / 1000, 0]);
+    chartData = [[Date.now() / 1000, 0]];
+    chartStep = 1;
+    if (myChart) {
+      myChart.setOption({
+        series: [{
+          data: [[Date.now() / 1000, 0]]
+        }]
+      });
+    }
   }
 
   function updateChart(speed) {
@@ -757,6 +765,11 @@
       myChart.setOption({ series: [{ data: chartData }] });
     }
   }
+
+  // Clear chart every 5 minutes
+  setInterval(() => {
+    if (isRunning && chartVisible) clearChart();
+  }, 5 * 60 * 1000);
 
   // Init
   updateUI();
