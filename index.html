@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NetProbe - Speed Test</title>
+  <meta name="description" content="NetProbe - Multi-thread network speed test tool">
+  <meta name="color-scheme" content="light dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20v-8"/>
+            <path d="M8 20v-4"/>
+            <path d="M16 20v-6"/>
+            <path d="M4 20v-2"/>
+            <path d="M20 20v-3"/>
+            <circle cx="12" cy="8" r="2"/>
+            <circle cx="8" cy="12" r="2"/>
+            <circle cx="16" cy="10" r="2"/>
+          </svg>
+          <span class="logo-text">NetProbe</span>
+        </div>
+        <button class="btn-ghost" id="aboutBtn">About</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="card">
+        <div class="card-row">
+          <label class="label">Test URL</label>
+          <div class="url-actions">
+            <button class="btn-icon" id="copyUrlBtn" title="Copy URL">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+            <button class="btn-icon" id="editNodesBtn" title="Manage URLs">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+        </div>
+        <select id="nodeSelect" class="select"></select>
+
+        <div class="card-row">
+          <label class="label">Threads: <span id="threadNumDisplay">8</span></label>
+        </div>
+        <input type="range" id="threadSlider" min="1" max="64" value="8" class="slider">
+
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="bgToggle">
+            <span class="toggle-track"></span>
+            <span class="toggle-label">Background</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="autoToggle">
+            <span class="toggle-track"></span>
+            <span class="toggle-label">Auto start</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Total Data</span>
+            <button class="btn-icon btn-sm" id="editMaxBtn" title="Set limit">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+          <div class="stat-value" id="totalData">-</div>
+          <div class="stat-limit" id="dataLimit"></div>
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+        </div>
+        <div class="stat-card stat-card-main">
+          <div class="stat-header">
+            <span class="stat-title" id="speedLabel">Realtime Speed</span>
+            <button class="btn-icon btn-sm" id="predictBtn" title="Usage prediction">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </button>
+          </div>
+          <div class="stat-value stat-value-main" id="speed">-</div>
+          <svg class="stat-icon stat-icon-main" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Bandwidth</span>
+            <button class="btn-icon btn-sm" id="editSpeedBtn" title="Set bandwidth limit">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+          </div>
+          <div class="stat-value" id="bandwidth">-</div>
+          <div class="stat-limit" id="speedLimit"></div>
+          <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+      </section>
+
+      <div class="center-btn-row">
+        <button class="play-btn" id="playBtn">
+          <svg class="icon-play" viewBox="0 0 24 24" width="40" height="40" fill="white"><polygon points="8,5 20,12 8,19"/></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" width="40" height="40" fill="white" style="display:none"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+          <svg class="icon-loading" viewBox="0 0 24 24" width="40" height="40" stroke="white" stroke-width="2" fill="none" style="display:none"><circle cx="12" cy="12" r="10" stroke-dasharray="40 60"/></svg>
+        </button>
+      </div>
+
+      <div class="chart-row">
+        <button class="btn-ghost btn-sm" id="chartToggle">Speed Chart</button>
+        <button class="btn-ghost btn-sm" id="fullscreenBtn">Fullscreen</button>
+      </div>
+      <div id="chartWrap" class="chart-wrap" style="display:none;">
+        <div id="chart" style="width:100%;height:300px;"></div>
+      </div>
+
+      <section class="card ip-card">
+        <div id="ipInfo" class="ip-info">
+          <span class="ip-loading">Loading IP info...</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="https://github.com/ljxi/NetworkPanel" target="_blank" rel="noopener">Source</a>
+    </footer>
+  </div>
+
+  <div id="fullscreenOverlay" class="fullscreen-overlay" style="display:none;">
+    <div class="fs-content">
+      <div class="fs-left">
+        <div class="fs-title">NetProbe</div>
+        <div class="fs-time" id="fsTime">00:00</div>
+        <div class="fs-date" id="fsDate"></div>
+      </div>
+      <div class="fs-right">
+        <div class="fs-stat"><span class="fs-des">Total Data</span><span class="fs-val" id="fsTotal">-</span></div>
+        <div class="fs-stat"><span class="fs-des">Speed</span><span class="fs-val" id="fsSpeed">-</span></div>
+        <div class="fs-stat"><span class="fs-des">Bandwidth</span><span class="fs-val" id="fsBand">-</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="predictPopup" class="popup" style="display:none;">
+    <div class="popup-body">
+      <div>Per minute: <span id="predMin">-</span></div>
+      <div>Per hour: <span id="predHour">-</span></div>
+      <div>Per day: <span id="predDay">-</span></div>
+      <div>Per month: <span id="predMon">-</span></div>
+    </div>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay" style="display:none;">
+    <div class="modal" id="modalBox">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle"></span>
+        <button class="btn-icon" id="modalClose">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+  <audio id="silentAudio" loop style="display:none">
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+  </audio>
+
+  <script src="app.js"></script>
+</body>
+</html>
