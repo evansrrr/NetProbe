@@ -603,11 +603,10 @@
     lastTouchEnd = now;
   }, { passive: false });
 
-  // IP info (Cloudflare trace + local connectivity check)
+  // IP info (Cloudflare trace)
   async function loadIPInfo() {
     const ipInfo = $('#ipInfo');
     try {
-      // Cloudflare trace
       const cfResp = await fetch('https://cp.cloudflare.com/cdn-cgi/trace', { referrerPolicy: 'no-referrer' });
       const cfText = await cfResp.text();
       const cfIP = cfText.match(/ip=([0-9a-f.:]+)/);
@@ -621,25 +620,39 @@
           <span class="ip-text">${cfIP[1]} ${cfLoc ? cfLoc[1] : ''} ${cfColo ? cfColo[1] : ''}</span>
         </div>`;
       }
-
-      // Local connectivity check
-      try {
-        const t0 = Date.now();
-        await fetch('https://connectivitycheck.platform.hicloud.com/generate_204', { method: 'HEAD', cache: 'no-store', mode: 'no-cors', referrerPolicy: 'no-referrer' });
-        const lay = Date.now() - t0;
-        html += `<div class="ip-item">
-          <span class="ip-tag clay">${lay}ms</span>
-          <span class="ip-text">Local connectivity</span>
-        </div>`;
-      } catch (e) {}
+      html += `<div class="ip-item">
+        <span class="ip-tag clay" id="latencyTag">-</span>
+        <span class="ip-text">Latency</span>
+      </div>`;
 
       ipInfo.innerHTML = html || '<span class="ip-loading">Unable to load IP info</span>';
     } catch (e) {
-      ipInfo.innerHTML = '<span class="ip-loading">Unable to load IP info</span>';
+      const ipInfo = $('#ipInfo');
+      if (!ipInfo.querySelector('.ip-tag')) {
+        ipInfo.innerHTML = `<div class="ip-item">
+          <span class="ip-tag clay" id="latencyTag">-</span>
+          <span class="ip-text">Latency</span>
+        </div>`;
+      }
     }
   }
+
+  // Latency check (every 1 second)
+  async function checkLatency() {
+    const tag = $('#latencyTag');
+    if (!tag) return;
+    try {
+      const t0 = Date.now();
+      await fetch('https://connectivitycheck.platform.hicloud.com/generate_204', { method: 'HEAD', cache: 'no-store', mode: 'no-cors', referrerPolicy: 'no-referrer' });
+      tag.textContent = (Date.now() - t0) + 'ms';
+    } catch (e) {
+      tag.textContent = '-ms';
+    }
+  }
+
   loadIPInfo();
   setInterval(loadIPInfo, 60000);
+  setInterval(checkLatency, 1000);
 
   // ECharts
   function initChart() {
@@ -707,7 +720,7 @@
         },
         data: [[Date.now() / 1000, 0]]
       }],
-      grid: { x: 50, y: 30, x2: 16, y2: 12 }
+      grid: { x: 50, y: 30, x2: 16, y2: 28 }
     };
     myChart.setOption(option);
     window.addEventListener('resize', () => myChart && myChart.resize());
