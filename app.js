@@ -1,17 +1,11 @@
 (() => {
   const BLOCK_LIST = ["ljxnet.cn", "netart.cn", ".gov.cn"];
   const NODES = {
-    "Carrier": {
-      "Migu Video": "https://img.cmvideo.cn/publish/noms/2023/12/06/1O4SHFIFR36BD.gif",
-      "He Cai Yun": "https://img.mcloud.139.com/material_prod/material_media/20221128/1669626861087.png",
-      "CTYun Desktop": "https://desk.ctyun.cn:8999/desktop-prod/software/windows_tob_client/15/64/202030001/CtyunClouddeskUniversal_2.3.0_202030001_x86_20240327104015_Setup.exe"
-    },
-    "Global": {
+    "Speed Test": {
       "Cachefly": "https://web1.cachefly.net/speedtest/downloading",
       "Cloudflare Speed": "https://speed.cloudflare.com/__down?bytes=99614720",
       "Steam Akamai": "https://cdn.akamai.steamstatic.com/steam/apps/1063730/extras/NW_Sword_Sorcery_2.gif",
-      "Steam Cloudflare": "https://cdn.cloudflare.steamstatic.com/steam/apps/1063730/extras/NW_Sword_Sorcery_2.gif",
-      "Microsoft Akamai": "https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RW16Ptm"
+      "Steam Cloudflare": "https://cdn.cloudflare.steamstatic.com/steam/apps/1063730/extras/NW_Sword_Sorcery_2.gif"
     }
   };
 
@@ -231,7 +225,6 @@
   }
 
   function setTitle(speed = 0) {
-    if (document.hidden) return;
     if (isRunning) {
       document.title = formatBytes(state.bytesUsed, [0, 0, 0, 0, 0, 0]) + ' ' + formatBytes(speed, [0, 0, 1, 2, 2, 2], 'speed');
     } else {
@@ -252,12 +245,10 @@
     const speed = (state.bytesUsed - state.recordUse) / (now - state.recordTime);
     if (!isNaN(speed) && speed > 0) {
       updateChart(speed);
-      if (!document.hidden) {
-        setSpeed(speed);
-        speedLabelEl.textContent = 'Realtime Speed';
-      }
-      if (document.hidden && bgToggle.checked) setTitle(speed);
-    } else if (!document.hidden) {
+      setSpeed(speed);
+      speedLabelEl.textContent = 'Realtime Speed';
+      setTitle(speed);
+    } else {
       speedEl.textContent = '-';
       bandwidthEl.textContent = '-';
     }
@@ -392,27 +383,34 @@
   });
 
   // Fullscreen
+  let fsTimer = 0;
+
+  function startFsTimer() {
+    if (fsTimer) return;
+    fsTimer = setInterval(() => {
+      if (fullscreenOverlay.style.display === 'none') {
+        clearInterval(fsTimer);
+        fsTimer = 0;
+        return;
+      }
+      const d = new Date();
+      $('#fsTime').textContent = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      $('#fsDate').textContent = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + days[d.getDay()];
+      $('#fsTotal').textContent = totalDataEl.textContent;
+      $('#fsSpeed').textContent = speedEl.textContent;
+      $('#fsBand').textContent = bandwidthEl.textContent;
+    }, 1000);
+  }
+
   $('#fullscreenBtn').addEventListener('click', () => {
     fullscreenOverlay.style.display = 'flex';
-    updateFsTime();
+    startFsTimer();
   });
 
   fullscreenOverlay.addEventListener('click', () => {
     fullscreenOverlay.style.display = 'none';
   });
-
-  let fsTimer = 0;
-  function updateFsTime() {
-    if (fullscreenOverlay.style.display === 'none') { clearInterval(fsTimer); return; }
-    const d = new Date();
-    $('#fsTime').textContent = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    $('#fsDate').textContent = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + days[d.getDay()];
-    $('#fsTotal').textContent = totalDataEl.textContent;
-    $('#fsSpeed').textContent = speedEl.textContent;
-    $('#fsBand').textContent = bandwidthEl.textContent;
-  }
-  fsTimer = setInterval(updateFsTime, 1000);
 
   // Edit nodes modal
   $('#editNodesBtn').addEventListener('click', () => {
@@ -591,13 +589,10 @@
 
   // Visibility
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && !bgToggle.checked && isRunning) {
-      // keep running
-    }
     if (!document.hidden && isRunning) {
       updateUI();
+      setTitle(state.bytesUsed > 0 ? (state.bytesUsed - state.recordUse) / (Date.now() / 1000 - state.recordTime) : 0);
     }
-    if (!document.hidden) setTitle(0);
   });
 
   // Double-tap zoom prevention
@@ -653,17 +648,66 @@
     if (!el) return;
     myChart = echarts.init(el);
     const option = {
+      animation: true,
+      animationDuration: 800,
+      animationEasing: 'cubicOut',
       tooltip: {
         trigger: 'axis',
+        backgroundColor: 'rgba(15,23,42,0.9)',
+        borderColor: 'transparent',
+        textStyle: { color: '#e2e8f0', fontSize: 13 },
         formatter: (params) => {
           const p = params[0];
-          return new Date(p.data[0] * 1000).toLocaleString() + '<br/>' + formatBytes(p.data[1], [0, 0, 1, 2, 2, 2], 'speed');
+          const t = new Date(p.data[0] * 1000);
+          const ts = t.getHours().toString().padStart(2, '0') + ':' + t.getMinutes().toString().padStart(2, '0') + ':' + t.getSeconds().toString().padStart(2, '0');
+          return ts + '<br/>' + formatBytes(p.data[1], [0, 0, 1, 2, 2, 2], 'speed');
         }
       },
-      xAxis: { type: 'time', boundaryGap: false, axisLabel: { show: false }, axisTick: { show: false } },
-      yAxis: { type: 'value', axisLabel: { formatter: v => formatBytes(v, [0, 0, 0, 0, 0, 0], 'speed') } },
-      series: [{ type: 'line', smooth: false, symbol: 'none', areaStyle: {}, data: [[Date.now() / 1000, 0]] }],
-      grid: { x: 0, y: 30, x2: 8, y2: 10, containLabel: true }
+      xAxis: {
+        type: 'time',
+        boundaryGap: false,
+        axisLabel: {
+          show: true,
+          color: '#94a3b8',
+          fontSize: 11,
+          formatter: (val) => {
+            const d = new Date(val);
+            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0') + ':' + d.getSeconds().toString().padStart(2, '0');
+          }
+        },
+        axisTick: { show: false },
+        axisLine: { lineStyle: { color: '#334155' } },
+        splitLine: { show: false }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          show: true,
+          color: '#94a3b8',
+          fontSize: 11,
+          formatter: v => formatBytes(v, [0, 0, 0, 0, 0, 0], 'speed')
+        },
+        splitLine: { lineStyle: { color: '#1e293b', type: 'dashed' } },
+        axisLine: { show: false }
+      },
+      series: [{
+        type: 'line',
+        smooth: 0.3,
+        symbol: 'none',
+        lineStyle: { width: 2, color: '#818cf8' },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(129,140,248,0.35)' },
+              { offset: 1, color: 'rgba(129,140,248,0.02)' }
+            ]
+          }
+        },
+        data: [[Date.now() / 1000, 0]]
+      }],
+      grid: { x: 50, y: 30, x2: 16, y2: 12 }
     };
     myChart.setOption(option);
     window.addEventListener('resize', () => myChart && myChart.resize());

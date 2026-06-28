@@ -66,9 +66,9 @@ html { scrollbar-width: none; }
 }
 
 .header-inner {
-  max-width: 600px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -88,9 +88,9 @@ html { scrollbar-width: none; }
 }
 
 .main {
-  max-width: 600px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 16px 20px 40px;
+  padding: 24px 24px 40px;
 }
 
 .card {
@@ -227,8 +227,8 @@ html { scrollbar-width: none; }
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
-  padding: 16px;
+  gap: 16px;
+  padding: 20px;
 }
 
 .stat-card {
@@ -260,7 +260,7 @@ html { scrollbar-width: none; }
 }
 
 .stat-value {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text);
   white-space: nowrap;
@@ -341,6 +341,7 @@ html { scrollbar-width: none; }
   border-radius: 12px;
   margin-bottom: 16px;
   overflow: hidden;
+  padding: 8px;
 }
 
 .ip-card {
@@ -720,6 +721,15 @@ html { scrollbar-width: none; }
   100% { transform: translate(2%, 2%); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  animation: fadeIn 0.4s ease-out;
+}
+
 .popup {
   position: fixed;
   z-index: 500;
@@ -747,5 +757,58 @@ html { scrollbar-width: none; }
 @media screen and (min-width: 500px) {
   .stats-grid {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+  .stat-value {
+    font-size: 32px;
+  }
+  .stat-card {
+    padding: 20px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .header-inner {
+    padding: 14px 32px;
+  }
+  .logo-text {
+    font-size: 20px;
+  }
+  .main {
+    padding: 28px 32px 48px;
+  }
+  .card {
+    padding: 24px;
+  }
+  .stat-value {
+    font-size: 36px;
+  }
+  .play-btn {
+    width: 96px;
+    height: 96px;
+  }
+  .play-btn svg {
+    width: 48px;
+    height: 48px;
+  }
+  .chart-wrap {
+    border-radius: 14px;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .header-inner {
+    max-width: 1100px;
+  }
+  .main {
+    max-width: 1100px;
+  }
+  .stats-grid {
+    gap: 20px;
+  }
+  .stat-value {
+    font-size: 40px;
+  }
+  .stat-title {
+    font-size: 13px;
   }
 }
