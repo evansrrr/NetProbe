@@ -544,14 +544,8 @@
   $('#aboutBtn').addEventListener('click', () => {
     openModal('About', `
       <div style="line-height:1.8">
-        <strong>NetProbe</strong> - Speed Test Tool<br>
+        <strong>NetProbe</strong><br>
         Based on <a href="https://github.com/ljxi/NetworkPanel" target="_blank" style="color:var(--primary)">NetworkPanel</a><br><br>
-        Features:<br>
-        - Multi-thread download speed test<br>
-        - Real-time speed chart<br>
-        - Custom test URLs<br>
-        - Bandwidth & data limits<br>
-        - Fullscreen mode
       </div>
     `);
   });
